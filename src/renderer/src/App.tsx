@@ -1,20 +1,19 @@
-import Versions from './components/Versions'
-import electronLogo from './assets/electron.svg'
-import { getGateway } from './lib/gateway'
+import Versions from "./components/Versions"
+import { getGateway } from "./lib/gateway"
+import { Button } from "@/components/ui/button"
 
 function App(): React.JSX.Element {
-  const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
+  const ipcHandle = (): void => window.electron.ipcRenderer.send("ping")
 
   const socketTestHandle = async (): Promise<void> => {
     const socket = await getGateway()
-    socket.emit('gateway:test', { message: 'Socket.IO test from renderer' })
+    socket.emit("gateway:test", { message: "Socket.IO test from renderer" })
   }
 
   return (
     <>
-      <img alt="logo" className="logo" src={electronLogo} />
       <div className="creator">Powered by electron-vite</div>
-      <div className="text">
+      <div className="font-bold text-2xl underline">
         Build an Electron app with <span className="react">React</span>
         &nbsp;and <span className="ts">TypeScript</span>
       </div>
@@ -28,14 +27,10 @@ function App(): React.JSX.Element {
           </a>
         </div>
         <div className="action">
-          <a target="_blank" rel="noreferrer" onClick={ipcHandle}>
-            Send IPC
-          </a>
+          <Button onClick={ipcHandle}>Send IPC</Button>
         </div>
         <div className="action">
-          <a target="_blank" rel="noreferrer" onClick={() => void socketTestHandle()}>
-            Emit Socket.IO test
-          </a>
+          <Button onClick={() => void socketTestHandle()}>Emit Socket.IO test</Button>
         </div>
       </div>
       <Versions></Versions>
