@@ -9,6 +9,9 @@ declare global {
         mimeType: string
         filename?: string
       }) => Promise<{ ok: boolean; status: number; bodyPreview: string }>
+      gateway: {
+        getUrl: () => Promise<string>
+      }
     }
   }
 }

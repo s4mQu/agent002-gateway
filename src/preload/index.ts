@@ -1,15 +1,11 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
-type AudioUploadPayload = {
-  data: ArrayBuffer
-  mimeType: string
-  filename?: string
-}
-
 const api = {
-  uploadAudio: (payload: AudioUploadPayload): Promise<{ ok: boolean; status: number; bodyPreview: string }> =>
-    ipcRenderer.invoke('audio:blob', payload)
+  gateway: {
+    getUrl: async (): Promise<string> =>
+      `http://127.0.0.1:${await ipcRenderer.invoke('gateway:port')}`
+  }
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

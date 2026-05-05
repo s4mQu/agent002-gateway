@@ -2,6 +2,9 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import { startGateway, type GatewayHandle } from './gateway'
+
+let gateway: GatewayHandle | null = null
 
 function createWindow(): void {
   // Create the browser window.
@@ -38,7 +41,7 @@ function createWindow(): void {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
@@ -52,33 +55,13 @@ app.whenReady().then(() => {
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
 
-  ipcMain.handle(
-    'audio:blob',
-    async (
-      _event,
-      payload: { data: ArrayBuffer; mimeType: string; filename?: string }
-    ): Promise<{ ok: boolean; status: number; bodyPreview: string }> => {
-      const url = import.meta.env.MAIN_VITE_AUDIO_UPLOAD_URL
-      if (!url) {
-        throw new Error('Set MAIN_VITE_AUDIO_UPLOAD_URL in .env (e.g. https://httpbin.org/post)')
-      }
+  try {
+    gateway = await startGateway()
+  } catch (err) {
+    console.error('Socket.IO gateway failed to start', err)
+  }
 
-      const blob = new Blob([payload.data], {
-        type: payload.mimeType || 'application/octet-stream'
-      })
-      const form = new FormData()
-      form.append('file', blob, payload.filename ?? 'audio')
-
-      const res = await fetch(url, { method: 'POST', body: form })
-      const text = await res.text()
-      console.log('[audio:blob] upload', { status: res.status, url, bytes: payload.data.byteLength })
-      console.log('[audio:blob] response body (truncated)', text.slice(0, 2000))
-
-      return { ok: res.ok, status: res.status, bodyPreview: text.slice(0, 500) }
-    }
-  )
-
-
+  ipcMain.handle('gateway:port', () => gateway?.port ?? 0)
 
   createWindow()
 
@@ -87,6 +70,10 @@ app.whenReady().then(() => {
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
+})
+
+app.on('before-quit', () => {
+  void gateway?.close()
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common
