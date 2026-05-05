@@ -1,8 +1,27 @@
+import { useState } from 'react'
 import Versions from './components/Versions'
 import electronLogo from './assets/electron.svg'
 
 function App(): React.JSX.Element {
   const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
+  const [uploadLog, setUploadLog] = useState<string>('')
+
+  const onPickAudio = async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    const data = await file.arrayBuffer()
+    try {
+      const result = await window.api.uploadAudio({
+        data,
+        mimeType: file.type || 'application/octet-stream',
+        filename: file.name
+      })
+      setUploadLog(JSON.stringify(result, null, 2))
+    } catch (err) {
+      setUploadLog(err instanceof Error ? err.message : String(err))
+    }
+  }
 
   return (
     <>
@@ -26,7 +45,16 @@ function App(): React.JSX.Element {
             Send IPC
           </a>
         </div>
+        <div className="action">
+          <label>
+            Upload audio
+            <input type="file" accept="audio/*" hidden onChange={onPickAudio} />
+          </label>
+        </div>
       </div>
+      {uploadLog ? (
+        <pre style={{ textAlign: 'left', maxHeight: 200, overflow: 'auto', fontSize: 12 }}>{uploadLog}</pre>
+      ) : null}
       <Versions></Versions>
     </>
   )

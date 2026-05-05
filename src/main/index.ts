@@ -52,6 +52,34 @@ app.whenReady().then(() => {
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
 
+  ipcMain.handle(
+    'audio:blob',
+    async (
+      _event,
+      payload: { data: ArrayBuffer; mimeType: string; filename?: string }
+    ): Promise<{ ok: boolean; status: number; bodyPreview: string }> => {
+      const url = import.meta.env.MAIN_VITE_AUDIO_UPLOAD_URL
+      if (!url) {
+        throw new Error('Set MAIN_VITE_AUDIO_UPLOAD_URL in .env (e.g. https://httpbin.org/post)')
+      }
+
+      const blob = new Blob([payload.data], {
+        type: payload.mimeType || 'application/octet-stream'
+      })
+      const form = new FormData()
+      form.append('file', blob, payload.filename ?? 'audio')
+
+      const res = await fetch(url, { method: 'POST', body: form })
+      const text = await res.text()
+      console.log('[audio:blob] upload', { status: res.status, url, bytes: payload.data.byteLength })
+      console.log('[audio:blob] response body (truncated)', text.slice(0, 2000))
+
+      return { ok: res.ok, status: res.status, bodyPreview: text.slice(0, 500) }
+    }
+  )
+
+
+
   createWindow()
 
   app.on('activate', function () {
