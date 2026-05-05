@@ -1,8 +1,14 @@
 import Versions from './components/Versions'
 import electronLogo from './assets/electron.svg'
+import { getGateway } from './lib/gateway'
 
 function App(): React.JSX.Element {
   const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
+
+  const socketTestHandle = async (): Promise<void> => {
+    const socket = await getGateway()
+    socket.emit('gateway:test', { message: 'Socket.IO test from renderer' })
+  }
 
   return (
     <>
@@ -24,6 +30,11 @@ function App(): React.JSX.Element {
         <div className="action">
           <a target="_blank" rel="noreferrer" onClick={ipcHandle}>
             Send IPC
+          </a>
+        </div>
+        <div className="action">
+          <a target="_blank" rel="noreferrer" onClick={() => void socketTestHandle()}>
+            Emit Socket.IO test
           </a>
         </div>
       </div>

@@ -19,6 +19,9 @@ export async function startGateway(): Promise<GatewayHandle> {
   })
 
   io.on('connection', (socket) => {
+    socket.on('gateway:test', (payload: unknown) => {
+      console.log('[gateway:test]', payload)
+    })
     socket.onAny((event, ...args) => socket.broadcast.emit(event, ...args))
   })
 
