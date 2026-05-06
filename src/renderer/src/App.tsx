@@ -1,6 +1,8 @@
-import Versions from "./components/Versions"
-import { getGateway } from "./lib/gateway"
-import { Button } from "@/components/ui/button"
+import { useEffect } from 'react'
+import { getGateway } from './lib/gateway'
+import { initTtsListener } from './lib/tts'
+import Versions from './components/Versions'
+import { Button } from '@/components/ui/button'
 
 function App(): React.JSX.Element {
   const ipcHandle = (): void => window.electron.ipcRenderer.send("ping")
@@ -9,6 +11,10 @@ function App(): React.JSX.Element {
     const socket = await getGateway()
     socket.emit("gateway:test", { message: "Socket.IO test from renderer" })
   }
+
+  useEffect(() => {
+    void initTtsListener()
+  }, [])
 
   return (
     <>

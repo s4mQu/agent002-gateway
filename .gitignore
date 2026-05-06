@@ -1,7 +1,12 @@
 node_modules
+AGENTS.md
 dist
 out
 .DS_Store
 .eslintcache
 *.log*
 .env
+/tts/venv/
+/tts/*.wav
+/tts/*.pt
+/tts/__pycache__/
